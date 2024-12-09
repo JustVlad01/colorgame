@@ -17,11 +17,12 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
     private Sensor accelerometer;
     private ArrayList<Integer> sequence;
     private int currentStep = 0;
+    private int score = 0; // Total score across rounds
     private boolean inputEnabled = false; // Prevent accidental inputs
     private boolean movementDetected = false; // To prevent multiple detections
     private static final float THRESHOLD = 6.0f; // Minimum tilt to consider
     private static final float DOMINANCE_FACTOR = 1.5f; // Axis dominance threshold
-    private TextView goTextView;
+    private TextView goTextView, scoreTextView; // Added TextView for score
     private Handler handler;
 
     @Override
@@ -33,9 +34,13 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
         sequence = getIntent().getIntegerArrayListExtra("sequence");
+        score = getIntent().getIntExtra("score", 0); // Retrieve accumulated score from Intent
 
         goTextView = findViewById(R.id.goTextView);
+        scoreTextView = findViewById(R.id.scoreTextView); // Ensure you add this TextView in the XML layout
         handler = new Handler();
+
+        updateScore(); // Show the current score
 
         Toast.makeText(this, "Match the sequence by tilting the phone!", Toast.LENGTH_SHORT).show();
 
@@ -56,6 +61,11 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+    private void updateScore() {
+        // Update the score display
+        scoreTextView.setText("Score: " + score);
+    }
+
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (!inputEnabled || movementDetected) return; // Ignore input until enabled or if movement already detected
@@ -71,10 +81,16 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
             if (currentStep < sequence.size()) {
                 showGoForNextColor(); // Show "GO" for the next step
             } else {
-                // All steps completed
+                // Round Complete
+                score += 4; // Add 4 points for successfully completing the round
+                updateScore(); // Update score display
+
                 Toast.makeText(this, "Round Complete!", Toast.LENGTH_SHORT).show();
+
+                // Start a new round with an extended sequence
                 handler.postDelayed(() -> {
                     Intent intent = new Intent(this, SequenceActivity.class);
+                    intent.putExtra("score", score); // Pass updated score to SequenceActivity
                     startActivity(intent);
                     finish();
                 }, 1000);
@@ -85,7 +101,7 @@ public class PlayActivity extends AppCompatActivity implements SensorEventListen
             inputEnabled = false;
             handler.postDelayed(() -> {
                 Intent intent = new Intent(this, GameOverActivity.class);
-                intent.putExtra("score", currentStep);
+                intent.putExtra("score", score); // Pass the final score to GameOverActivity
                 startActivity(intent);
                 finish();
             }, 1000);

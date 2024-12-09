@@ -13,6 +13,8 @@ public class SequenceActivity extends AppCompatActivity {
     private Random random;
     private TextView sequenceText;
     private Handler handler;
+    private int score; // Current score
+    private int round; // Current round
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,13 +27,18 @@ public class SequenceActivity extends AppCompatActivity {
         random = new Random();
         sequence = new ArrayList<>();
 
+        // Retrieve score and round from Intent
+        score = getIntent().getIntExtra("score", 0);
+        round = getIntent().getIntExtra("round", 1);
+
         generateSequence();
         showSequence();
     }
 
     private void generateSequence() {
         sequence.clear();
-        for (int i = 0; i < 4; i++) { // Initial sequence length is 4
+        int sequenceLength = 4 + (round - 1) * 2; // Sequence length increases by 2 for each round
+        for (int i = 0; i < sequenceLength; i++) {
             sequence.add(random.nextInt(4)); // Random numbers representing colors
         }
     }
@@ -50,12 +57,7 @@ public class SequenceActivity extends AppCompatActivity {
             handler.postDelayed(() -> displaySequenceStep(step + 1), 1000);
         } else {
             // Transition to PlayActivity after showing the sequence
-            handler.postDelayed(() -> {
-                Intent intent = new Intent(SequenceActivity.this, PlayActivity.class);
-                intent.putIntegerArrayListExtra("sequence", sequence);
-                startActivity(intent);
-                finish();
-            }, 1000); // Give some buffer time
+            startPlayActivity();
         }
     }
 
@@ -67,5 +69,16 @@ public class SequenceActivity extends AppCompatActivity {
             case 3: return "Yellow";
             default: return "Unknown";
         }
+    }
+
+    private void startPlayActivity() {
+        handler.postDelayed(() -> {
+            Intent intent = new Intent(SequenceActivity.this, PlayActivity.class);
+            intent.putIntegerArrayListExtra("sequence", sequence); // Pass updated sequence
+            intent.putExtra("score", score); // Pass current score
+            intent.putExtra("round", round); // Pass current round
+            startActivity(intent);
+            finish();
+        }, 1000);
     }
 }

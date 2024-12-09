@@ -7,10 +7,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 
-// Activity to display the top 5 high scores
 public class HighScoreActivity extends AppCompatActivity {
 
-    private DatabaseHelper dbHelper; // Helper for fetching scores
+    private DatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,10 +18,10 @@ public class HighScoreActivity extends AppCompatActivity {
 
         dbHelper = new DatabaseHelper(this);
 
-        // Fetch top scores from the database
+        // Fetch the top scores from the database
         ArrayList<String> highScores = dbHelper.fetchTopScores();
 
-        // Populate the ListView with the top scores
+        // Populate the ListView with the scores
         ListView highScoresListView = findViewById(R.id.highScoreList);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, highScores);
         highScoresListView.setAdapter(adapter);
